@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.api.user import router as user_router
+from api.user import router as user_router
 import uvicorn
-from database import Base, engine
+from database.database import Base, engine
 from models.user import User
 
 
