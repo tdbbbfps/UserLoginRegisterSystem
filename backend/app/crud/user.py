@@ -2,18 +2,18 @@ from sqlalchemy.orm import Session
 from models.user import User
 from schemas import user
 from core import security
-
+from sqlalchemy import update
 # CRUD
 
 def create_user(db : Session, user_create : user.UserCreate) -> User:
     """Create a new user."""
     # Check if username or email already exists and check is password strong enough.
     if read_user_by_username(db, user_create.username):
-        return
+        raise ValueError("Username already registered.")
     if read_user_by_email(db, user_create.email):
-        return
+        raise ValueError("Email already registered.")
     if not security.is_password_strong(user_create.password):
-        return
+        raise ValueError("Password is not strong enough.")
     db_user = User(
         username=user_create.username,
         name=user_create.name,
@@ -37,3 +37,32 @@ def read_user_by_username(db : Session, username : str) -> User:
 def read_user_by_email(db : Session, email : str) -> User:
     """Read a user by email."""
     return db.query(User).filter(User.email == email).first()
+
+def update_user(db : Session, user_id : int, user_update : user.UserUpdate) -> User:
+    """Update user data."""
+    # Convert user schema to dict(ignore unset fields).
+    data_to_update = user_update.model_dump(exclude_unset=True)
+    if not data_to_update:
+        return read_user_by_id(db, user_id)    
+    if "username" in data_to_update:
+        existing_user = read_user_by_username(db, data_to_update["username"])
+        if existing_user and existing_user.id != user_id:
+            raise ValueError("Username already registered.")
+    if "email" in data_to_update:
+        existing_user = read_user_by_email(db, data_to_update["email"])
+        if existing_user and existing_user.id != user_id:
+            raise ValueError("Email already registered.")
+    if "password" in data_to_update:
+        data_to_update["password"] = security.hash_password(data_to_update["password"])
+    db.query(User).filter(User.id == user_id).update(data_to_update)
+    db.commit()
+    return read_user_by_id(db, user_id)
+
+def delete_user(db : Session, user_id : int) -> bool:
+    """Delete a user from database."""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        return False
+    db.delete(db_user)
+    db.commit()
+    return True
