@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html>
-<head lang="zh-TW">
-    <meta charset="utf-8">
-    <!-- Import VUE CDN -->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Login and Register</title>
+    <link rel="stylesheet" href="css/user-modal-style.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="js/app.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
+
 <body>
     <div id="app">
-        <app></app>
+        <user-modal :show_modal=true></user-modal>
     </div>
+    <script src="script/user_modal.js"></script>
+    <script src="script/app.js"></script>
 </body>
 
 </html>
