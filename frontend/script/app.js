@@ -1,60 +1,73 @@
 const { createApp, ref, onMounted, reactive } = Vue;
 
 const app = createApp({
+    components: {
+        "user-modal": UserModal,
+        "profile-modal": ProfileModal
+    },
+    data() {
+        return {
+            token: localStorage.getItem("access_token"),
+            currentUser: null
+        };
+    },
     setup() {
         const API_URL = "http://localhost:8000/api";
         const token = ref(localStorage.getItem("access_token") || "");
-        const currentTab = ref("login");
+        const showModal = ref(true);
         const loading = ref(false);
-        const errorMessage = ref("");
-        const successMessage = ref("");
-
+        const message = ref("");
         const user = ref("");
-        
-        const loginForm = reactive({"username": "", "password": ""});
-        const registerForm = reactive({"email": "", "username": "", "password": "", "name": ""});
-        const editForm = reactive({"email": "", "username": "", "password": "", "name": "", "bio": ""})
-        
+        const editForm = reactive({ "email": "", "username": "", "password": "", "name": "", "bio": "" })
+
         axios.interceptors.request.use(config => {
             if (token.value) {
                 config.headers.Authorization = `Bearer ${token.value}`;
             }
             return config;
         });
-        // Send login request.
-        const handleLogin = async () => {
+        const handleSubmit = async (payload) => {
+            const { type, data } = payload;
             loading.value = true;
-            errorMessage.value = "";
+            message.value = "";
+            if (type === "login") {
+                await handleLogin(data)
+            } else {
+                await handleRegister(data)
+            }
+        };
+        // Send login request.
+        const handleLogin = async (data) => {
+            loading.value = true;
             try {
                 const params = new URLSearchParams();
-                params.append("username", loginForm.username);
-                params.append("password", loginForm.password);
+                params.append("username", data.username);
+                params.append("password", data.password);
 
                 const response = await axios.post(`${API_URL}/auth/token`, params);
 
                 token.value = response.data.access_token;
                 localStorage.setItem("access_token", token.value);
 
+                showModal.value = false;
+                message.value = "Login success!";
                 await fetchUserProfile();
             } catch (error) {
                 console.log(error);
-                errorMessage.value = "Login failed!";
+                message.value = "Login failed!";
             } finally {
                 loading.value = false;
             }
         };
         // Send register request.
-        const handleRegister = async () => {
+        const handleRegister = async (data) => {
             loading.value = true;
-            errorMessage.value = "";
             try {
-                await axios.post(`${API_URL}/user/`, registerForm);
-                alert("Register success!")
-                currentTab = "login";
-                Object.keys(registerForm).forEach(key => registerForm[key] = "");
+                await axios.post(`${API_URL}/user/`, data);
+                message.value = "Register success!";
             } catch (err) {
                 console.log(err);
-                errorMessage.value = "Register failed!";
+                message.value = "Register failed!" + (err.response?.data?.detail || "Unknown error.")
             } finally {
                 loading.value = false;
             }
@@ -76,15 +89,12 @@ const app = createApp({
         // Send update user data request.
         const updateUserProfile = async () => {
             loading.value = true;
-            errorMessage.value = "";
-            successMessage.value = "";
+            message.value = "";
             try {
                 const response = await axios.patch(`${API_URL}/user`, editForm);
-                user.value = response.value;
-                successMessage.value = "Update success!";
+                user.value = response.data;
             } catch (err) {
                 console.log(err);
-                errorMessage.value = "Update failed!";
             } finally {
                 loading.value = false;
             }
@@ -94,7 +104,6 @@ const app = createApp({
             token.value = "";
             localStorage.removeItem("access_token");
             user.value = "";
-            currentTab = "login";
         };
         onMounted(() => {
             if (token.value) {
@@ -102,14 +111,13 @@ const app = createApp({
             }
         });
         return {
-            token, currentTab, loading, errorMessage, successMessage, user, loginForm, registerForm, editForm,
-             handleLogin, handleRegister, fetchUserProfile, updateUserProfile, logout
+            // Variables
+            token, showModal, loading, message, user, editForm,
+            // Functions
+            handleSubmit, updateUserProfile, logout
         }
-
-        }
-
-
+    }
 });
-
-app.component('user-modal', UserModal);
-app.mount('#app');
+app.component("user-modal", UserModal);
+app.component("profile-modal", ProfileModal);
+app.mount("#app");
