@@ -4,16 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <title>User Login and Register</title>
-    <link rel="stylesheet" href="css/user-modal-style.css">
+    <link rel="stylesheet" href="css/modal-style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
     <div id="app">
-        <user-modal :show_modal=true></user-modal>
+        <!--  在 HTML 檔案（DOM 模板）中，屬性名稱是不分大小寫的（Case-insensitive）。 當您在 index.html 中寫 :showModal="showModal" 時，瀏覽器會將其解析為 :showmodal（全小寫）。 然而，您的 Vue 元件 user-modal 預期接收的 props 名稱是 showModal（駝峰式命名）。由於名稱不匹配（showmodal vs showModal），元件接收到的 showModal 變成了 undefined（視為 false），導致 Modal 隱藏。 -->
+        <user-modal 
+            :show-modal="showModal" :message="message" :loading="loading" 
+            @close="showModal = false" 
+            @submit="handleSubmit"
+            @update-message="message = $event"
+        ></user-modal>
+        <profile-modal></profile-modal>
     </div>
-    <script src="script/user_modal.js"></script>
+    <script src="script/user-modal.js"></script>
+    <script src="script/profile-modal.js"></script>
     <script src="script/app.js"></script>
 </body>
 
