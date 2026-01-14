@@ -12,20 +12,59 @@ const UserModal = {
             showPassword: false,
         };
     },
+    computed: {
+        isPasswordValid() {
+            if (!this.password) return false;
+            const rule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            return rule.test(this.password);
+        },
+        isPasswordMatch() {
+            return this.password === this.confirmPassword;
+        },
+        isAllFieldsFilled() {
+            if (this.isLogin) {
+                return this.username && this.password;
+            } else {
+                return this.username && this.password && this.confirmPassword && this.email && this.name;
+            }
+        }
+    },
+    watch: {
+        confirmPassword() {
+            if (!this.password && !this.confirmPassword) {
+                this.$emit("update-message", "");
+                return;
+            }
+            if (!this.isPasswordMatch) {
+                this.$emit("update-message", "Password doesn't match!");
+            } else if (this.isPasswordMatch) {
+                this.$emit("update-message", "");
+            }
+        }
+    },
     methods: {
         async confirm() {
             if (this.loading) {
                 console.log("Processing request... Stop trying.")
                 return;
             }
-            this.$emit("update-message", "");
-            
             // Check if password match confirmPassword.
-            if (!this.isLogin && this.password !== this.confirmPassword) {
-                this.$emit("update-message", "Password doesn't match!")
-                return;
+            if (!this.isLogin) {
+                if (!this.isPasswordMatch) {
+                    this.$emit("update-message", "Password doesn't match!");
+                    return;
+                }
+                if (!this.isPasswordValid) {
+                    this.$emit("update-message", "Password must comply with rules.!");
+                    return;
+                }
             }
-            
+            // Update message when login or register.
+            if (this.isLogin) {
+                this.$emit("update-message", "Logining in...");
+            } else {
+                this.$emit("update-message", "Registering...");
+            }
             const payload = {
                 type: this.isLogin ? "login" : "register",
                 data: {}
@@ -38,6 +77,9 @@ const UserModal = {
             }
             // Send payload to app.js.
             this.$emit("submit", payload);
+        },
+        showRules() {
+            alert("Password Rules:\n\n1. At least 8 characters long.\n2. At least one uppercase letter (A-Z).\n3. At least one lowercase letter (a-z).\n4. At least one number (0-9).\n5. At least one special character (!@#$etc.).");
         },
         switch_mode() {
             this.isLogin = !this.isLogin;
@@ -79,7 +121,14 @@ const UserModal = {
                 <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="">
             </div>
             <div v-show="!isLogin" class="form-group">
-                <label>Confirm Password</label>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label>Confirm Password</label>
+                    <div v-if="password" style="transform: translate(0px, -4px); display: flex; align-items: center; gap: 10px;">
+                        <button @click="showRules" class="password-rule-button" :class="isPasswordValid ? 'password-rule-valid-button' : 'password-rule-invalid-button'">
+                        {{ isPasswordValid ? '&#10004; Password Valid!' : '&times; Password Invalid!' }}
+                        </button>
+                    </div>
+                </div>
                 <input :type="showPassword ? 'text' : 'password'" v-model="confirmPassword" placeholder="">
             </div>
             <div class="horizontal-container">
@@ -90,7 +139,7 @@ const UserModal = {
                 </button>
             </div>
             <div class="form-group">
-                <button @click="confirm" class="confirm-button">Confirm</button>
+                <button @click="confirm" class="confirm-button" :disabled="!isAllFieldsFilled">Confirm</button>
             </div>
             <div class="form-group">
                 <button @click="switch_mode" class="plain-text-button">{{isLogin ? 'No account? Register here.' : 'Have an account? Login here.'}}</button>
