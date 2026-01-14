@@ -29,6 +29,17 @@ async def read_user(user_id : int, db : Session = Depends(get_database)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     return db_user
 
+@router.patch('/me', response_model=user_schema.User, status_code=status.HTTP_200_OK)
+async def update_user_me(user_update : user_schema.UserUpdate, db : Session = Depends(get_database), current_user : user_model.User = Depends(get_current_user)):
+    """Update user's own data."""
+    try:
+        db_user = user_crud.update_user(db=db, user_id=current_user.id, user_update=user_update)
+        if not db_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+        return db_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
 @router.patch('/{user_id}', response_model=user_schema.User, status_code=status.HTTP_200_OK)
 async def update_user(user_id : int, user_update : user_schema.UserUpdate, db : Session = Depends(get_database)):
     """Update user data."""
