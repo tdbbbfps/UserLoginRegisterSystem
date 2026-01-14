@@ -19,10 +19,10 @@ def get_current_user_temp(token : str = Depends(oauth2_scheme)):
 
 async def get_current_user(db : Session = Depends(get_database), token : str = Depends(oauth2_scheme)) -> User:
     """Dependency to get the current user from the token."""
-    # 認證失敗錯誤
+    # Validation exception to raise if any error occurs.
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detial="Could not validate credentials.",
+        detail="Could not validate credentials.",
         headers={"WWW-Authenticate" : "Bearer"}
         )
     try:
