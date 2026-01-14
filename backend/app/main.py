@@ -26,10 +26,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
-app.include_router(user_router, prefix="/api/users", tags=["users"])
+app.include_router(user_router, prefix="/api/user", tags=["user"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 @app.get('/')
