@@ -1,5 +1,5 @@
 const ProfileModal = {
-    props: ["isLoading", "user"],
+    props: ["loading", "user"],
     emits: ["submit"],
     data() {
         return {
