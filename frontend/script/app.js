@@ -8,7 +8,7 @@ const app = createApp({
     data() {
         return {
             token: localStorage.getItem("access_token"),
-            currentUser: null
+            user: null
         };
     },
     setup() {
@@ -87,12 +87,12 @@ const app = createApp({
             }
         };
         // Send update user data request.
-        const updateUserProfile = async () => {
+        const updateUserProfile = async (payload) => {
             loading.value = true;
-            // message.value = "";
             try {
-                const response = await axios.patch(`${API_URL}/user`, editForm);
+                const response = await axios.patch(`${API_URL}/user/me`, payload);
                 user.value = response.data;
+                alert("Update success!");
             } catch (err) {
                 console.log(err);
             } finally {
