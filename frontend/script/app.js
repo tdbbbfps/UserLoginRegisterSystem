@@ -29,7 +29,7 @@ const app = createApp({
         const handleSubmit = async (payload) => {
             const { type, data } = payload;
             loading.value = true;
-            message.value = "";
+            // message.value = "";
             if (type === "login") {
                 await handleLogin(data)
             } else {
@@ -89,7 +89,7 @@ const app = createApp({
         // Send update user data request.
         const updateUserProfile = async () => {
             loading.value = true;
-            message.value = "";
+            // message.value = "";
             try {
                 const response = await axios.patch(`${API_URL}/user`, editForm);
                 user.value = response.data;
