@@ -19,7 +19,11 @@
             @submit="handleSubmit"
             @update-message="message = $event"
         ></user-modal>
-        <profile-modal></profile-modal>
+        <profile-modal
+            :loading="loading"
+            :user="user"
+            @submit="updateUserProfile"
+        ></profile-modal>
     </div>
     <script src="script/user-modal.js"></script>
     <script src="script/profile-modal.js"></script>
