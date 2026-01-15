@@ -40,6 +40,16 @@ async def update_user_me(user_update : user_schema.UserUpdate, db : Session = De
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+@router.post('/me/password', status_code=status.HTTP_200_OK)
+async def update_password_me(user_password : user_schema.PasswordUpdate, db : Session = Depends(get_database), current_user : user_model.User = Depends(get_current_user)):
+    """Update user's own password."""
+    try:
+        if not user_crud.update_user_password(db=db, user_id=current_user.id, old_password=user_password.old_password, new_password=user_password.new_password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        return {"message" : "Password updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
 @router.patch('/{user_id}', response_model=user_schema.User, status_code=status.HTTP_200_OK)
 async def update_user(user_id : int, user_update : user_schema.UserUpdate, db : Session = Depends(get_database)):
     """Update user data."""
