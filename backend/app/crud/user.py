@@ -66,3 +66,18 @@ def delete_user(db : Session, user_id : int) -> bool:
     db.delete(db_user)
     db.commit()
     return True
+
+def update_user_password(db : Session, user_id : int, old_password : str, new_password : str) -> bool:
+    """Update user password."""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise ValueError("User not found.")
+    # Verify old password.
+    if not security.verify_password(old_password, db_user.password):
+        raise ValueError("Old password is incorrect.")
+    # Check new password strength.
+    if not security.is_password_strong(new_password):
+        raise ValueError("New password is not strong enough.")
+    db_user.password = security.hash_password(new_password)
+    db.commit()
+    return True
