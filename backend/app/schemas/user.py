@@ -24,3 +24,7 @@ class User(UserBase):
     id : int = Field(..., description="The unique identifier of the user.")
 
     model_config = ConfigDict(from_attributes=True)
+
+class PasswordUpdate(BaseModel):
+    old_password : str = Field(..., min_length=8, description="The current password of the user.")
+    new_password : str = Field(..., min_length=8, description="The new password for the user account.")
