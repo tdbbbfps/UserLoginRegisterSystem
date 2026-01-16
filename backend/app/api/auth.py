@@ -13,7 +13,7 @@ async def login_for_access_token(form_data : OAuth2PasswordRequestForm = Depends
     # The OAuth2PasswordRequestForm has two attributes: username and password.
     user = user_crud.read_user_by_username(db=db, username=form_data.username)
     if not user or not security.verify_password(plain_password=form_data.password, hashed_password=user.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.", headers={"WWW-Authenticate" : "Bearer"})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.", headers={"WWW-Authenticate" : "Bearer"})
     # Toekn expiration time
     access_token_expires = timedelta(minutes=jwt.ACCESS_TOKEN_EXPIRE_MINUTES)
     # sub(subject) is a standard claim in JWT to identify the principal that is the subject of the JWT. (Usually username or ID)
