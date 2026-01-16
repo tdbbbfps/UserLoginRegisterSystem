@@ -12,7 +12,7 @@
 
 <body>
     <div id="app">
-        <user-modal :show-modal="showModal" :loading="loading" :message="message" @update-message="handleUpdateMessage" @close="showModal = false"
+        <user-modal ref="userModal" :show-modal="showModal" :loading="loading" :message="message" @update-message="handleUpdateMessage" @close="showModal = false"
             @submit="handleSubmit"></user-modal>
         <profile-modal :loading="loading" :user="user" :message="message" @update-message="handleUpdateMessage" @submit="updateUserProfile"
             @edit-password="showPasswordModal = true" @login="showModal = true" @logout="logout"></profile-modal>
