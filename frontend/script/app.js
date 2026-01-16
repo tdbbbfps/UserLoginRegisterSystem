@@ -9,6 +9,7 @@ const app = createApp({
     setup() {
         const token = ref(sessionStorage.getItem("access_token") || "");
         const user = ref(null);
+        const userModal = ref(null);
         const API_URL = "http://localhost:8000/api";
         const showModal = ref(true);
         const showPasswordModal = ref(false);
@@ -45,6 +46,7 @@ const app = createApp({
 
                 showModal.value = false;
                 await fetchUserProfile();
+                message.value = "";
             } catch (err) {
                 message.value = "Login failed! " + (err.response?.data?.detail || "Unknown error.");
             } finally {
@@ -56,6 +58,10 @@ const app = createApp({
             loading.value = true;
             try {
                 await axios.post(`${API_URL}/user/`, data);
+                message.value = "Register success! Please login.";
+                if (userModal.value) {
+                    userModal.value.switchToLogin();
+                }
             } catch (err) {
                 message.value = "Register failed! " + (err.response?.data?.detail || "Unknown error.");
             } finally {
@@ -104,8 +110,7 @@ const app = createApp({
         const logout = () => {
             token.value = "";
             sessionStorage.removeItem("access_token");
-            user.value = "";
-            showModal.value = true;
+            user.value = null;
         };
 
         const handleUpdateMessage = (msg) => {
@@ -118,7 +123,7 @@ const app = createApp({
             }
         });
         return {
-            token, showModal, loading, user, showPasswordModal, message,
+            token, showModal, loading, user, showPasswordModal, message, userModal,
             handleSubmit, updateUserProfile, handleChangePassword, logout, handleUpdateMessage
         }
     }
