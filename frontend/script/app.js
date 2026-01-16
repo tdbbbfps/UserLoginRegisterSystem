@@ -3,22 +3,17 @@ const { createApp, ref, onMounted, reactive } = Vue;
 const app = createApp({
     components: {
         "user-modal": UserModal,
-        "profile-modal": ProfileModal
-    },
-    data() {
-        return {
-            token: localStorage.getItem("access_token"),
-            user: null
-        };
+        "profile-modal": ProfileModal,
+        "password-edit-modal": PasswordEditModal
     },
     setup() {
+        const token = ref(sessionStorage.getItem("access_token") || "");
+        const user = ref(null);
         const API_URL = "http://localhost:8000/api";
-        const token = ref(localStorage.getItem("access_token") || "");
         const showModal = ref(true);
+        const showPasswordModal = ref(false);
         const loading = ref(false);
         const message = ref("");
-        const user = ref("");
-        const editForm = reactive({ "email": "", "username": "", "password": "", "name": "", "bio": "" })
 
         axios.interceptors.request.use(config => {
             if (token.value) {
@@ -29,7 +24,6 @@ const app = createApp({
         const handleSubmit = async (payload) => {
             const { type, data } = payload;
             loading.value = true;
-            // message.value = "";
             if (type === "login") {
                 await handleLogin(data)
             } else {
@@ -47,14 +41,12 @@ const app = createApp({
                 const response = await axios.post(`${API_URL}/auth/token`, params);
 
                 token.value = response.data.access_token;
-                localStorage.setItem("access_token", token.value);
+                sessionStorage.setItem("access_token", token.value);
 
                 showModal.value = false;
-                message.value = "Login success!";
                 await fetchUserProfile();
-            } catch (error) {
-                console.log(error);
-                message.value = "Login failed!";
+            } catch (err) {
+                message.value = "Login failed! " + (err.response?.data?.detail || "Unknown error.");
             } finally {
                 loading.value = false;
             }
@@ -64,10 +56,8 @@ const app = createApp({
             loading.value = true;
             try {
                 await axios.post(`${API_URL}/user/`, data);
-                message.value = "Register success!";
             } catch (err) {
-                console.log(err);
-                message.value = "Register failed!" + (err.response?.data?.detail || "Unknown error.")
+                message.value = "Register failed! " + (err.response?.data?.detail || "Unknown error.");
             } finally {
                 loading.value = false;
             }
@@ -77,13 +67,8 @@ const app = createApp({
             try {
                 const response = await axios.get(`${API_URL}/user/me`);
                 user.value = response.data;
-
-                editForm.email = user.value.email;
-                editForm.username = user.value.username;
-                editForm.name = user.value.name;
-                editForm.bio = user.value.bio;
             } catch (err) {
-                console.log(err);
+                console.log(err)
             }
         };
         // Send update user data request.
@@ -92,9 +77,25 @@ const app = createApp({
             try {
                 const response = await axios.patch(`${API_URL}/user/me`, payload);
                 user.value = response.data;
-                alert("Update success!");
+                message.value = "Update success!";
             } catch (err) {
-                console.log(err);
+                message.value = "Update failed! " + (err.response?.data?.detail || "Unknown error.");
+            } finally {
+                loading.value = false;
+            }
+        };
+        const handleChangePassword = async (payload) => {
+            loading.value = true;
+            try {
+                await axios.post(`${API_URL}/user/me/password`, payload);
+                
+                message.value = "Password changed successfully! Please login again.";
+
+                logout(); 
+                showPasswordModal.value = false;
+                
+            } catch (err) {
+                message.value = "Password change failed! " + (err.response?.data?.detail || "Unknown error.");
             } finally {
                 loading.value = false;
             }
@@ -102,22 +103,27 @@ const app = createApp({
         // Clear user data and jwt.
         const logout = () => {
             token.value = "";
-            localStorage.removeItem("access_token");
+            sessionStorage.removeItem("access_token");
             user.value = "";
+            showModal.value = true;
         };
+
+        const handleUpdateMessage = (msg) => {
+            message.value = msg;
+        };
+
         onMounted(() => {
             if (token.value) {
                 fetchUserProfile();
             }
         });
         return {
-            // Variables
-            token, showModal, loading, message, user, editForm,
-            // Functions
-            handleSubmit, updateUserProfile, logout
+            token, showModal, loading, user, showPasswordModal, message,
+            handleSubmit, updateUserProfile, handleChangePassword, logout, handleUpdateMessage
         }
     }
 });
 app.component("user-modal", UserModal);
 app.component("profile-modal", ProfileModal);
+app.component("password-edit-modal", PasswordEditModal);
 app.mount("#app");

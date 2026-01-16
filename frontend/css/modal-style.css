@@ -79,6 +79,16 @@ body {
     color: #d5d5d5;
 }
 
+.plain-text-button:active {
+    transform: scale(0.95);
+}
+
+.plain-text-button:disabled {
+    cursor: not-allowed;
+    color: rgb(100, 100, 100);
+    pointer-events: none;
+}
+
 .confirm-button {
     border-radius: 4px;
     background-color: rgb(50, 200, 50);
@@ -151,9 +161,13 @@ h1 {
 .form-group:has(input:not(:placeholder-shown)) label {
     transform: translate(2px, 0px);
 }
+.form-group:focus-within label,
+.form-group:has(textarea:not(:placeholder-shown)) label {
+    transform: translate(2px, 0px);
+}
 
 .form-group input,
-textarea {
+.form-group textarea {
     width: 100% auto;
     background-color: rgb(60, 60, 60);
     border: 1px solid rgb(80, 80, 80);
@@ -328,6 +342,12 @@ textarea {
     transform: scale(0.95);
 }
 
+.edit-button:disabled {
+    cursor: not-allowed;
+    background-color: rgb(100, 100, 100);
+    color: white;
+    pointer-events: none;
+}
 .active {
     color: white;
     background-color: rgb(255, 50, 50);

@@ -1,5 +1,5 @@
 const UserModal = {
-    props: ["showModal", "message", "loading"],
+    props: ["showModal", "loading", "message"],
     emits: ["close", "submit", "update-message"],
     data() {
         return {
@@ -9,7 +9,7 @@ const UserModal = {
             password: "",
             email: "",
             confirmPassword: "",
-            showPassword: false,
+            showPassword: false
         };
     },
     computed: {
@@ -30,6 +30,10 @@ const UserModal = {
         isPasswordMatch() {
             return this.password === this.confirmPassword;
         },
+        isEmailValid() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(this.email);
+        },
         isAllFieldsFilled() {
             if (this.isLogin) {
                 return this.username && this.password;
@@ -41,7 +45,7 @@ const UserModal = {
             if (this.isLogin) {
                 return this.isAllFieldsFilled;
             } else {
-                return this.isAllFieldsFilled && this.isPasswordValid && this.isPasswordMatch;
+                return this.isAllFieldsFilled && (this.isLogin ? true : this.isPasswordValid && this.isPasswordMatch && this.isEmailValid);
             }
         },
         passwordIconStatus() {
@@ -70,7 +74,6 @@ const UserModal = {
     methods: {
         async confirm() {
             if (this.loading) {
-                console.log("Processing request... Stop trying.")
                 return;
             }
             // Check if password match confirmPassword.
@@ -80,20 +83,15 @@ const UserModal = {
                     return;
                 }
                 if (!this.isPasswordValid) {
-                    this.$emit("update-message", "Password must comply with rules.!");
+                     this.$emit("update-message", "Password must comply with rules.!");
                     return;
                 }
-            }
-            // Update message when login or register.
-            if (this.isLogin) {
-                this.$emit("update-message", "Logining in...");
-            } else {
-                this.$emit("update-message", "Registering...");
             }
             const payload = {
                 type: this.isLogin ? "login" : "register",
                 data: {}
             }
+
             payload.data.username = this.username;
             payload.data.password = this.password;
             if (!this.isLogin) {
@@ -102,27 +100,29 @@ const UserModal = {
             }
             // Send payload to app.js.
             this.$emit("submit", payload);
+            this.$emit("update-message", this.isLogin ? "Logining in..." : "Registering...");
         },
         switchMode() {
             this.isLogin = !this.isLogin;
             this.clean();
+            this.$emit("update-message", "");
         },
         forgetPassword() {
-            console.log("Can't even remember your password? Hilarious.")
+            console.log("I didn't implement this.")
         },
         close() {
             this.clean();
             this.$emit("close");
+            this.$emit("update-message", "");
         },
         clean() {
-            this.$emit("update-message", "");
             this.username = "";
             this.name = "";
             this.password = "";
             this.email = "";
             this.confirmPassword = "";
             this.showPassword = false;
-        }
+        },
     },
     template: `
     <div v-if="showModal" class="user-modal">
@@ -150,11 +150,11 @@ const UserModal = {
                         <div class="tooltip-box">
                             <strong>Password Rules:</strong>
                             <ul>
-                                <li :style="{ color: passwordAnalysis.length ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)' }">{{ passwordAnalysis.length ? '&#10004;' : '&#10006;' }} At least 8 characters</li>
-                                <li :style="{ color: passwordAnalysis.upper ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)' }">{{ passwordAnalysis.upper ? '&#10004;' : '&#10006;' }} At least one uppercase (A-Z)</li>
-                                <li :style="{ color: passwordAnalysis.lower ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)' }">{{ passwordAnalysis.lower ? '&#10004;' : '&#10006;' }} At least one lowercase (a-z)</li>
-                                <li :style="{ color: passwordAnalysis.number ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)' }">{{ passwordAnalysis.number ? '&#10004;' : '&#10006;' }} At least one number (0-9)</li>
-                                <li :style="{ color: passwordAnalysis.special ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)' }">{{ passwordAnalysis.special ? '&#10004;' : '&#10006;' }} At least one special char (!@#$)</li>
+                                <li :style="{color: passwordAnalysis.length ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)'}">{{passwordAnalysis.length ? '&#10004;' : '&#10006;'}} At least 8 characters</li>
+                                <li :style="{color: passwordAnalysis.upper ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)'}">{{passwordAnalysis.upper ? '&#10004;' : '&#10006;'}} At least one uppercase (A-Z)</li>
+                                <li :style="{color: passwordAnalysis.lower ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)'}">{{passwordAnalysis.lower ? '&#10004;' : '&#10006;'}} At least one lowercase (a-z)</li>
+                                <li :style="{color: passwordAnalysis.number ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)'}">{{passwordAnalysis.number ? '&#10004;' : '&#10006;'}} At least one number (0-9)</li>
+                                <li :style="{color: passwordAnalysis.special ? 'rgb(50, 200, 50)' : 'rgb(200, 50, 50)'}">{{passwordAnalysis.special ? '&#10004;' : '&#10006;'}} At least one special char (!@#$etc...)</li>
                             </ul>
                         </div>
                     </div>
@@ -166,20 +166,19 @@ const UserModal = {
             </div>
             <div class="horizontal-container">
                 <p>{{message}}</p>
-                
                 <button @click="showPassword = !showPassword" class="plain-text-button">
                     <i :class="showPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill'"></i>
                     {{showPassword ? 'Hide Password' : 'Show Password'}}
                 </button>
             </div>
             <div class="form-group">
-                <button @click="confirm" class="confirm-button" :disabled="!canConfirm">Confirm</button>
+                <button @click="confirm" class="confirm-button" :disabled="!canConfirm || loading">Confirm</button>
             </div>
             <div class="form-group">
                 <button @click="forgetPassword" class="plain-text-button">Forget Password?</button>
             </div>
             <div class="form-group">
-                <button @click="switchMode" class="plain-text-button">{{isLogin ? 'No account? Register here.' : 'Have an account? Login here.'}}</button>
+                <button @click="switchMode" class="plain-text-button" :disabled="loading">{{isLogin ? 'No account? Register here.' : 'Have an account? Login here.'}}</button>
             </div>
         </div>
     </div>

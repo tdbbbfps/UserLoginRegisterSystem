@@ -1,6 +1,6 @@
 const ProfileModal = {
-    props: ["loading", "user"],
-    emits: ["submit"],
+    props: ["loading", "user", "message"],
+    emits: ["submit", "edit-password", "login", "logout", "update-message"],
     data() {
         return {
             isEditing: false,
@@ -8,11 +8,9 @@ const ProfileModal = {
             email: "",
             username: "",
             name: "",
-            password: "",
             bio: "",
 
             showPassword: false,
-            message: "",
         }
     },
     watch: {
@@ -23,7 +21,11 @@ const ProfileModal = {
                     this.username = newUser.username || "";
                     this.name = newUser.name || "";
                     this.bio = newUser.bio || "";
-                    this.password = "";
+                } else {
+                    this.email = "";
+                    this.username = "";
+                    this.name = "";
+                    this.bio = "";
                 }
             },
             deep: true,
@@ -36,32 +38,25 @@ const ProfileModal = {
             // Recover original user data if cancel.
             if (!this.isEditing) {
                 if (this.user) {
-                    this.email = newUser.email || "";
-                    this.username = newUser.username || "";
-                    this.name = newUser.name || "";
-                    this.bio = newUser.bio || "";
-                    this.password = "";
+                    this.email = this.user.email || "";
+                    this.username = this.user.username || "";
+                    this.name = this.user.name || "";
+                    this.bio = this.user.bio || "";
                 }
             }
         },
         async submit() {
-            if (loading) {
+            if (this.loading) {
                 console.log("Processing request... Stop trying.")
                 return;
             }
-            
+
             const payload = {
-                email: this.email,
-                username: this.username,
                 name: this.name,
                 bio: this.bio
             }
 
-            if (this.password && this.password.trim() !== "") {
-                payload.password = this.password;
-            }
             this.$emit("submit", payload);
-            
             this.isEditing = false;
         }
     },
@@ -69,39 +64,35 @@ const ProfileModal = {
     <div class="profile-modal">
         <div class="profile-modal-content">
             <h1>Profile</h1>
+            <div class="horizontal-container" style="display: flex;justify-content: center;align-items: center;">
+                <button v-show="!this.user" class="confirm-button" @click="$emit('login')" :disabled="this.user">Login</button>
+                <button v-show="this.user" class="confirm-button" @click="$emit('logout')" :disabled="!this.user">Logout</button>
+            </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="text" v-model="email" placeholder="" :disabled="!isEditing">
+                <input type="text" v-model="email" placeholder="" disabled="true">
             </div>
             <div class="form-group">
                 <label>Username</label>
-                <input type="text" v-model="username" placeholder="" :disabled="!isEditing">
+                <input type="text" v-model="username" placeholder="" disabled="true">
             </div>
             <div class="form-group">
                 <label>Name</label>
                 <input type="text" v-model="name" placeholder="" :disabled="!isEditing">
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="" :disabled="!isEditing">
-            </div>
-            <div class="form-group">
                 <label>Bio</label>
                 <textarea v-model="bio" placeholder="" :disabled="!isEditing"></textarea>
             </div>
-            <div class="horizontal-container">
-                <p>{{message}}</p>
-                <button @click="showPassword = !showPassword" class="plain-text-button">
-                    <i :class="showPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill'"></i>
-                    {{showPassword ? 'Hide Password' : 'Show Password'}}
-                </button>
+            <div class="form-group" style="display: flex;justify-content: center;align-items: center;margin-top: 24px">
+                <button @click="$emit('edit-password')" class="edit-button" style="width: 100%;" :disabled="!this.user || loading"><i class="bi bi-pencil-square"></i>Edit Password</button>
             </div>
             <div class="horizontal-container">
-                <button @click="toggleEdit" class="edit-button" :class="{ 'active': isEditing }">
+                <button @click="toggleEdit" class="edit-button" :class="{ 'active': isEditing }" :disabled="!this.user || loading">
                     <i :class="isEditing ? '' : 'bi bi-pencil-square'"></i>
-                    {{isEditing ? "&times; Cancel" : "Edit"}}
+                    {{isEditing ? "&times; Cancel" : "Edit Profile"}}
                 </button>
-                <button @click="submit" class="submit-button" :disabled="!isEditing">&#10004; Submit</button>
+                <button @click="submit" class="submit-button" :disabled="!isEditing || loading">&#10004; Submit</button>
             </div>
         </div>
     </div>
