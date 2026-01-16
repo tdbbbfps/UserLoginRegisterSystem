@@ -107,6 +107,11 @@ const UserModal = {
             this.clean();
             this.$emit("update-message", "");
         },
+        switchToLogin() {
+            this.isLogin = true;
+            this.clean();
+            this.$emit("update-message", "");
+        },
         forgetPassword() {
             console.log("I didn't implement this.")
         },
