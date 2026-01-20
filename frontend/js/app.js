@@ -111,6 +111,7 @@ const app = createApp({
             token.value = "";
             sessionStorage.removeItem("access_token");
             user.value = null;
+            message.value = "";
         };
 
         const handleUpdateMessage = (msg) => {

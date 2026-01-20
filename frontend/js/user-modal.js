@@ -101,6 +101,7 @@ const UserModal = {
             // Send payload to app.js.
             this.$emit("submit", payload);
             this.$emit("update-message", this.isLogin ? "Logining in..." : "Registering...");
+            this.clean();
         },
         switchMode() {
             this.isLogin = !this.isLogin;
