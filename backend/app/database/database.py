@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from dotenv import load_dotenv
 import psycopg2
 import os
@@ -29,7 +28,9 @@ SQLALCHEMY_DATABASE_URL = URL.create(
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+# Declarative base class
+class Base(DeclarativeBase):
+    pass
 
 def get_database():
     """Dependency to get DB session."""
